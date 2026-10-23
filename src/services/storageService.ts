@@ -60,26 +60,58 @@ const DEFAULT_SESSIONS: SessionAnswer[] = [
 const STORAGE_KEY = 'rr_voice_app_v2';
 const LEGACY_KEY = 'rr1';
 
+const sanitizeTarget = (t: any): TargetJob => ({
+  id: String(t?.id || `target-${Date.now()}`),
+  role: String(t?.role || 'Job Application'),
+  company: String(t?.company || ''),
+  type: (['tech', 'product', 'sales', 'data', 'ops', 'general'].includes(t?.type) ? t.type : 'general'),
+  skills: Array.isArray(t?.skills) ? t.skills.map(String).filter(Boolean) : [],
+  jobDescription: t?.jobDescription ? String(t.jobDescription) : undefined,
+  createdAt: Number(t?.createdAt) || Date.now(),
+});
+
 export const storageService = {
   load(): AppState {
     try {
-      const data = localStorage.getItem(STORAGE_KEY);
-      if (data) {
-        return JSON.parse(data);
-      }
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const data = localStorage.getItem(STORAGE_KEY);
+        if (data) {
+          const parsed = JSON.parse(data);
+          const rawTargets = Array.isArray(parsed?.targets) ? parsed.targets : [];
+          const targets = rawTargets.length > 0 ? rawTargets.map(sanitizeTarget) : DEFAULT_TARGETS;
+          const active = parsed?.active && targets.some((t: TargetJob) => t.id === parsed.active)
+            ? parsed.active
+            : targets[0].id;
 
-      // Check legacy format
-      const legacy = localStorage.getItem(LEGACY_KEY);
-      if (legacy) {
-        const parsed = JSON.parse(legacy);
-        return {
-          targets: parsed.targets?.length ? parsed.targets : DEFAULT_TARGETS,
-          sessions: parsed.sessions || [],
-          active: parsed.active || (parsed.targets?.[0]?.id ?? 't-demo-1'),
-          custom: parsed.custom || {},
-          checks: {},
-          selectedPersonaId: 'kore',
-        };
+          return {
+            targets,
+            sessions: Array.isArray(parsed?.sessions) ? parsed.sessions : [],
+            active,
+            custom: typeof parsed?.custom === 'object' && parsed.custom !== null ? parsed.custom : {},
+            checks: typeof parsed?.checks === 'object' && parsed.checks !== null ? parsed.checks : {},
+            selectedPersonaId: String(parsed?.selectedPersonaId || 'kore'),
+          };
+        }
+
+        // Check legacy format
+        const legacy = localStorage.getItem(LEGACY_KEY);
+        if (legacy) {
+          const parsed = JSON.parse(legacy);
+          const rawTargets = Array.isArray(parsed?.targets) ? parsed.targets : [];
+          const targets = rawTargets.length > 0 ? rawTargets.map(sanitizeTarget) : DEFAULT_TARGETS;
+          const active = parsed?.active && targets.some((t: TargetJob) => t.id === parsed.active)
+            ? parsed.active
+            : targets[0].id;
+
+          return {
+            targets,
+            sessions: Array.isArray(parsed?.sessions) ? parsed.sessions : [],
+            active,
+            custom: typeof parsed?.custom === 'object' && parsed.custom !== null ? parsed.custom : {},
+            checks: {},
+            selectedPersonaId: 'kore',
+          };
+        }
       }
     } catch (e) {
       console.warn('Failed to load from localStorage:', e);

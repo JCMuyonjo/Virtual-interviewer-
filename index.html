@@ -9,12 +9,48 @@
     <meta property="og:description" content="Interactive job interview rehearsal with an AI voice interviewer that asks role-specific questions, listens to spoken responses, and provides real-time feedback." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Trailing slash redirect for GitHub Pages relative assets -->
+    <script>
+      (function() {
+        var path = window.location.pathname;
+        if (path && !path.endsWith('/') && !path.split('/').pop().includes('.')) {
+          window.location.replace(path + '/' + window.location.search + window.location.hash);
+        }
+      })();
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   </head>
   <body class="bg-[#EEF1F6] dark:bg-[#0B1220] text-[#101828] dark:text-[#EEF2FA] font-sans antialiased min-h-screen">
-    <div id="root"></div>
+    <div id="root">
+      <!-- Fallback displayed only if JavaScript fails to load on GitHub Pages -->
+      <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; font-family: system-ui, sans-serif;">
+        <div style="max-width: 500px; text-align: center; background: #ffffff; padding: 32px; border-radius: 16px; border: 1px solid #D5DBE6; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+          <div style="width: 48px; height: 48px; border-radius: 50%; border: 3px solid #FFB400; border-top-color: transparent; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
+          <h2 style="margin: 0 0 8px; font-size: 18px; color: #101828;">Loading Rehearsal Room...</h2>
+          <p style="margin: 0; font-size: 13px; color: #5B6577; line-height: 1.5;">
+            Preparing voice interview stage and questions.
+          </p>
+          <div id="gh-pages-tip" style="display: none; margin-top: 20px; padding: 12px; background: #FFF8E6; border: 1px solid #FFE08A; border-radius: 8px; text-align: left; font-size: 12px; color: #7A5300; line-height: 1.5;">
+            <b>GitHub Pages Setup Note:</b><br />
+            If this message remains, verify in your GitHub repository:
+            <b>Settings &rarr; Pages &rarr; Build and deployment &rarr; Source</b> is set to <b>GitHub Actions</b> (not "Deploy from a branch").
+          </div>
+        </div>
+      </div>
+      <style>
+        @keyframes spin { to { transform: rotate(360deg); } }
+      </style>
+      <script>
+        setTimeout(function() {
+          var tip = document.getElementById('gh-pages-tip');
+          if (tip) tip.style.display = 'block';
+        }, 3000);
+      </script>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
