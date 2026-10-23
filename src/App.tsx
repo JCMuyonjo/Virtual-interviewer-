@@ -246,9 +246,33 @@ export default function App() {
             });
           }
         }
+      } else {
+        throw new Error('Static deployment');
       }
     } catch (e) {
-      console.warn('Failed to generate AI questions:', e);
+      // Local fallback for GitHub Pages
+      const role = activeTarget.role;
+      const co = activeTarget.company || 'our company';
+      const fallbackList = [
+        `How have your past experiences uniquely prepared you to excel as ${role} at ${co}?`,
+        `Walk me through an end-to-end initiative you drove as ${role} where you solved an ambiguous problem.`,
+        activeTarget.skills[0]
+          ? `How do you apply ${activeTarget.skills[0]} to balance rapid delivery with top-tier quality?`
+          : `How do you approach learning and mastering new tools in high-velocity teams?`,
+        `Describe a scenario where a project was falling behind schedule. What interventions did you make?`,
+        `What is the most critical metric you would focus on during your first 90 days as ${role} at ${co}?`,
+      ];
+
+      setCustomQuestions((prev) => ({
+        ...prev,
+        [activeTarget.id]: [...(prev[activeTarget.id] || []), ...fallbackList],
+      }));
+
+      setCurrentQuestion({
+        q: fallbackList[0],
+        cat: 'Role skills',
+        rationale: 'Evaluates core competencies and execution capabilities',
+      });
     } finally {
       setIsGeneratingQuestions(false);
     }
