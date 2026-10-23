@@ -1,8 +1,25 @@
 import { InterviewerPersona } from '../types';
 
 let currentAudioElement: HTMLAudioElement | null = null;
+let activeUtterance: SpeechSynthesisUtterance | null = null;
+let ttsQuotaExhausted = false;
+
+// Pre-load voices if speech synthesis is supported
+let availableVoices: SpeechSynthesisVoice[] = [];
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  const loadVoices = () => {
+    availableVoices = window.speechSynthesis.getVoices();
+  };
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
 
 export const voiceService = {
+  // Checks if TTS quota has been exhausted during this session
+  isQuotaExhausted() {
+    return ttsQuotaExhausted;
+  },
+
   // Speaks text aloud using Gemini 3.8 TTS or Web Speech API fallback
   async speakText(
     text: string,
@@ -25,10 +42,17 @@ export const voiceService = {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
+      activeUtterance = null;
     };
 
+    // If quota was previously exhausted on the server, jump directly to Web Speech API
+    if (ttsQuotaExhausted) {
+      this.speakWithWebSpeech(text, persona, onStart, onEnd, onError);
+      return { stop: stopHandler };
+    }
+
     try {
-      // First attempt server-side Gemini 3.8 Flash Lite TTS
+      // Attempt server-side Gemini 3.8 Flash Lite TTS
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -41,6 +65,18 @@ export const voiceService = {
 
       if (res.ok) {
         const data = await res.json();
+
+        // If server flagged quota exceeded or fallback
+        if (data.fallback) {
+          if (data.quotaExceeded) {
+            ttsQuotaExhausted = true;
+          }
+          if (!stopped) {
+            this.speakWithWebSpeech(text, persona, onStart, onEnd, onError);
+          }
+          return { stop: stopHandler };
+        }
+
         if (data.audio && !stopped) {
           const audio = new Audio(`data:audio/wav;base64,${data.audio}`);
           currentAudioElement = audio;
@@ -54,8 +90,7 @@ export const voiceService = {
             if (!stopped && onEnd) onEnd();
           };
 
-          audio.onerror = (e) => {
-            console.warn('Audio playback error, falling back to Web Speech API', e);
+          audio.onerror = () => {
             if (!stopped) {
               this.speakWithWebSpeech(text, persona, onStart, onEnd, onError);
             }
@@ -64,9 +99,12 @@ export const voiceService = {
           await audio.play();
           return { stop: stopHandler };
         }
+      } else {
+        // If 429 or 500, mark quota exhausted to prevent repeated network requests
+        ttsQuotaExhausted = true;
       }
-    } catch (err) {
-      console.warn('Server TTS unavailable, using browser speech synthesis:', err);
+    } catch {
+      ttsQuotaExhausted = true;
     }
 
     if (!stopped) {
@@ -91,22 +129,42 @@ export const voiceService = {
     window.speechSynthesis.cancel();
 
     // Clean text of markdown artifacts
-    const cleanText = text.replace(/[*_#`~]/g, '').trim();
+    const cleanText = text.replace(/[*_#`~"]/g, '').trim();
+    if (!cleanText) return;
+
     const utterance = new SpeechSynthesisUtterance(cleanText);
+    activeUtterance = utterance;
 
     // Pick matching voice if available
-    const voices = window.speechSynthesis.getVoices();
+    const voices = availableVoices.length > 0 ? availableVoices : window.speechSynthesis.getVoices();
     const isFemale = persona.voice === 'Kore' || persona.voice === 'Zephyr';
-    const preferredVoice = voices.find(v => {
-      const name = v.name.toLowerCase();
-      return v.lang.startsWith('en') && (isFemale ? (name.includes('female') || name.includes('samantha') || name.includes('zira') || name.includes('victoria')) : (name.includes('male') || name.includes('david') || name.includes('george')));
-    }) || voices.find(v => v.lang.startsWith('en')) || voices[0];
+
+    const preferredVoice =
+      voices.find((v) => {
+        const name = v.name.toLowerCase();
+        const isEnglish = v.lang.startsWith('en');
+        if (!isEnglish) return false;
+        return isFemale
+          ? name.includes('female') ||
+              name.includes('samantha') ||
+              name.includes('victoria') ||
+              name.includes('zira') ||
+              name.includes('karen') ||
+              name.includes('google us english')
+          : name.includes('male') ||
+              name.includes('david') ||
+              name.includes('daniel') ||
+              name.includes('george') ||
+              name.includes('alex');
+      }) ||
+      voices.find((v) => v.lang.startsWith('en')) ||
+      voices[0];
 
     if (preferredVoice) {
       utterance.voice = preferredVoice;
     }
 
-    utterance.rate = 0.95; // Slightly slower, measured interviewer pace
+    utterance.rate = 0.96; // Natural interviewer pace
     utterance.pitch = isFemale ? 1.05 : 0.95;
 
     utterance.onstart = () => {
@@ -114,10 +172,12 @@ export const voiceService = {
     };
 
     utterance.onend = () => {
+      activeUtterance = null;
       if (onEnd) onEnd();
     };
 
     utterance.onerror = (e) => {
+      activeUtterance = null;
       // Ignore interruption cancels
       if (e.error !== 'interrupted' && e.error !== 'canceled') {
         if (onError) onError(e);
@@ -132,7 +192,7 @@ export const voiceService = {
       try {
         currentAudioElement.pause();
         currentAudioElement.currentTime = 0;
-      } catch (e) {
+      } catch {
         // ignore
       }
       currentAudioElement = null;
@@ -140,10 +200,11 @@ export const voiceService = {
     if ('speechSynthesis' in window) {
       try {
         window.speechSynthesis.cancel();
-      } catch (e) {
+      } catch {
         // ignore
       }
     }
+    activeUtterance = null;
   },
 
   // Check speech recognition capability
@@ -186,8 +247,7 @@ export const voiceService = {
           audioContext.close().catch(() => {});
         },
       };
-    } catch (e) {
-      console.warn('AudioContext not permitted or failed to start:', e);
+    } catch {
       return { stop: () => {} };
     }
   },
