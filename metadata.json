@@ -1,0 +1,11 @@
+{
+  "name": "Rehearsal Room: AI Voice Interview Practice",
+  "description": "Interactive job interview rehearsal with an AI voice interviewer that asks role-specific questions, listens to spoken responses, and provides real-time feedback.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

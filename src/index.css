@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-heading: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-stage-bg: #12203A;
+  --color-stage-dark: #1B2B4B;
+  --color-accent-amber: #FFB400;
+  --color-accent-amber-dark: #241A00;
+  --color-brand-green: #1F8A5B;
+  --color-brand-green-dark: #4CC38A;
+}
+
+:root {
+  --bg: #EEF1F6;
+  --panel: #ffffff;
+  --ink: #101828;
+  --mute: #5B6577;
+  --line: #D5DBE6;
+  --stage: #12203A;
+  --stage-ink: #F2F5FB;
+  --accent: #FFB400;
+  --accent-ink: #241A00;
+  --ok: #1F8A5B;
+  color-scheme: light dark;
+}
+
+:root.dark, [data-theme="dark"] {
+  --bg: #0B1220;
+  --panel: #141D2F;
+  --ink: #EEF2FA;
+  --mute: #99A4B8;
+  --line: #26324A;
+  --stage: #1B2B4B;
+  --stage-ink: #F2F5FB;
+  --ok: #4CC38A;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg);
+  color: var(--ink);
+}
+
+h1, h2, h3, h4, .font-heading {
+  font-family: "Bricolage Grotesque", system-ui, sans-serif;
+  letter-spacing: -0.015em;
+}
+
+/* Custom soundwave pulse animation */
+@keyframes soundwave {
+  0%, 100% { height: 6px; }
+  50% { height: 28px; }
+}
+
+.soundwave-bar {
+  animation: soundwave 1.2s ease-in-out infinite;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(150, 160, 180, 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(150, 160, 180, 0.5);
+}

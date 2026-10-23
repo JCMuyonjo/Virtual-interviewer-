@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rehearsal Room: interview practice</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EEF1F6;--panel:#fff;--ink:#101828;--mute:#5B6577;--line:#D5DBE6;--stage:#12203A;--stage-ink:#F2F5FB;--accent:#FFB400;--accent-ink:#241A00;--ok:#1F8A5B;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0B1220;--panel:#141D2F;--ink:#EEF2FA;--mute:#99A4B8;--line:#26324A;--stage:#1B2B4B;--stage-ink:#F2F5FB;--ok:#4CC38A}}
+:root[data-theme="dark"]{--bg:#0B1220;--panel:#141D2F;--ink:#EEF2FA;--mute:#99A4B8;--line:#26324A;--stage:#1B2B4B;--stage-ink:#F2F5FB;--ok:#4CC38A}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "IBM Plex Sans",system-ui,sans-serif}
+h1,h2,h3{font-family:"Bricolage Grotesque",system-ui,sans-serif;margin:0;line-height:1.15}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.app{max-width:1100px;margin:0 auto;padding:20px 16px 48px;display:grid;gap:20px;grid-template-columns:260px 1fr}
+@media(max-width:800px){.app{grid-template-columns:1fr}}
+header{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+header h1{font-size:1.6rem}
+header p{margin:0;color:var(--mute);max-width:46ch}
+aside,.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+aside h2{font-size:1.05rem;margin-bottom:10px}
+.t{display:block;width:100%;text-align:left;background:none;border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px;cursor:pointer}
+.t[aria-current=true]{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--accent)}
+.t b{display:block}.t span{color:var(--mute);font-size:.85rem}
+label{display:block;font-size:.9rem;margin:10px 0 4px;color:var(--mute)}
+input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px}
+textarea{min-height:140px;resize:vertical}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:10px 16px;font-weight:500;cursor:pointer}
+.btn.alt{background:none;color:var(--ink);border:1px solid var(--line)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+nav[role=tablist]{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+nav button{background:none;border:0;border-bottom:3px solid transparent;padding:8px 12px;cursor:pointer;color:var(--mute)}
+nav button[aria-selected=true]{color:var(--ink);border-color:var(--accent);font-weight:500}
+.stage{background:var(--stage);color:var(--stage-ink);border-radius:10px;padding:24px;margin-bottom:14px}
+.stage small{opacity:.75}
+.stage h2{font-size:1.6rem;margin:8px 0 14px;max-width:34ch}
+.timer{font:700 1.4rem "Bricolage Grotesque",sans-serif;color:var(--accent)}
+.hint{font-size:.9rem;color:var(--mute);margin:8px 0 0}
+.stars button{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:none;cursor:pointer;font-weight:500}
+.stars button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.bar{height:10px;background:var(--bg);border-radius:6px;overflow:hidden;flex:1;min-width:80px}
+.bar i{display:block;height:100%;background:var(--accent)}
+.hist{border-top:1px solid var(--line);padding:12px 0}
+.hist:first-child{border:0}
+.hist p{margin:4px 0;color:var(--mute);white-space:pre-wrap}
+.empty{color:var(--mute);padding:8px 0}
+.chk label{display:flex;gap:10px;align-items:flex-start;color:var(--ink);font-size:1rem;margin:8px 0}
+.chk input{width:auto;margin-top:5px}
+.ok{color:var(--ok);font-weight:500}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:no-preference){.stage{transition:background .3s}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>Rehearsal Room</h1>
+  <p>Add the job you’re applying for. Practice questions tailored to it, save your answers, and improve them each round.</p>
+</header>
+
+<aside>
+  <h2>Your applications</h2>
+  <div id="targets"></div>
+  <details id="newform">
+    <summary class="btn alt" style="display:inline-block;cursor:pointer">Add application</summary>
+    <label for="f-role">Job title</label><input id="f-role" placeholder="Product Designer">
+    <label for="f-co">Company</label><input id="f-co" placeholder="Acme">
+    <label for="f-type">Field</label>
+    <select id="f-type"><option value="tech">Software / engineering</option><option value="product">Product / design</option><option value="sales">Sales / customer</option><option value="data">Data / analytics</option><option value="ops">Operations / management</option><option value="general">Something else</option></select>
+    <label for="f-sk">Key skills from the job post (comma separated)</label><input id="f-sk" placeholder="stakeholder management, Figma, A/B testing">
+    <div class="row" style="margin-top:12px"><button class="btn" id="addT">Save application</button></div>
+  </details>
+</aside>
+
+<main>
+  <nav role="tablist" aria-label="Sections">
+    <button role="tab" data-tab="practice" aria-selected="true">Practice</button>
+    <button role="tab" data-tab="history" aria-selected="false">Past answers</button>
+    <button role="tab" data-tab="progress" aria-selected="false">Progress</button>
+    <button role="tab" data-tab="setup" aria-selected="false">Online setup check</button>
+  </nav>
+  <section id="tab-practice"></section>
+  <section id="tab-history" hidden></section>
+  <section id="tab-progress" hidden></section>
+  <section id="tab-setup" class="card chk" hidden></section>
+</main>
+</div>
+
+<script>
+const BANK={
+general:[["Tell me about yourself.","Intro"],["Why do you want to work at {company}?","Motivation"],["Why are you a fit for the {role} role?","Motivation"],["Tell me about a time you disagreed with a teammate.","Behavioral"],["Describe a mistake you made and what you changed afterwards.","Behavioral"],["Tell me about a time you had to learn something quickly.","Behavioral"],["What is your biggest weakness?","Behavioral"],["Where do you want to be in three years?","Motivation"],["Tell me about a project you’re proud of.","Behavioral"],["Do you have any questions for us?","Closing"]],
+tech:[["Walk me through how you would debug a production issue you can’t reproduce.","Role skills"],["Explain a technical decision you made and its trade-offs.","Role skills"],["How do you approach code review?","Role skills"],["Describe a system you designed. What would you change today?","Role skills"]],
+product:[["How would you decide what to build next when everything seems urgent?","Role skills"],["Walk me through a product you shipped from idea to launch.","Role skills"],["How do you handle feedback from users that conflicts with data?","Role skills"],["How do you work with engineers when scope is tight?","Role skills"]],
+sales:[["Walk me through how you handle a customer who says your price is too high.","Role skills"],["Tell me about the biggest deal or account you won or saved.","Role skills"],["How do you prepare before a first call?","Role skills"],["Tell me about a customer you lost. What did you learn?","Role skills"]],
+data:[["How do you check that data is trustworthy before analysing it?","Role skills"],["Describe an analysis that changed a decision.","Role skills"],["How would you explain a statistical result to a non-technical manager?","Role skills"],["How do you decide which metric matters most?","Role skills"]],
+ops:[["Tell me about a time you improved a process.","Role skills"],["How do you prioritise when your team is overloaded?","Role skills"],["Describe how you handled an underperforming team member.","Role skills"],["How do you keep people aligned during a change?","Role skills"]]
+};
+const CHECK=["Test your camera and microphone in the exact app the interview uses (Zoom, Teams, Meet).","Place your camera at eye level and look at the lens when you speak.","Face a window or lamp so light falls on your face, not behind you.","Use headphones to avoid echo, and close apps that make notifications.","Plug in your laptop and use a wired or strong Wi‑Fi connection.","Open the job post, your CV and your notes on a second window or paper.","Have a backup plan: phone hotspot and the interviewer’s contact details.","Join five minutes early and keep a glass of water nearby."];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let mem=null;
+function load(){try{const r=localStorage.getItem("rr1");if(r)return JSON.parse(r)}catch(e){}return mem||{targets:[],sessions:[],active:null,custom:{}}}
+function save(){try{localStorage.setItem("rr1",JSON.stringify(S))}catch(e){mem=S}}
+let S=load(),cur=null,secs=0,tick=null,rating=0,tab="practice",checks={};
+const T=()=>S.targets.find(t=>t.id===S.active);
+
+function pool(t){
+  const list=[...BANK.general,...(BANK[t.type]||[])].map(x=>({q:x[0].replace("{company}",t.company||"this company").replace("{role}",t.role),cat:x[1]}));
+  t.skills.forEach(k=>{list.push({q:"Tell me about a time you used "+k+" to get a result.",cat:"Job-post skills"});list.push({q:"How would you rate your "+k+" and how are you improving it?",cat:"Job-post skills"})});
+  (S.custom[t.id]||[]).forEach(q=>list.push({q,cat:"Your own"}));
+  return list;
+}
+function pick(){
+  const t=T();if(!t)return;
+  const all=pool(t),mine=S.sessions.filter(s=>s.tid===t.id);
+  const score=q=>{const m=mine.filter(s=>s.q===q.q);return m.length?m[m.length-1].rating-(m.length*0.1):-1};
+  const sorted=all.map(q=>({q,s:score(q)+Math.random()*0.9})).sort((a,b)=>a.s-b.s);
+  const prev=cur&&cur.q;
+  cur=(sorted.find(x=>x.q.q!==prev)||sorted[0]).q;
+  rating=0;startTimer();
+}
+function startTimer(){clearInterval(tick);secs=0;tick=setInterval(()=>{secs++;const e=$("#timer");if(e)e.textContent=fmt(secs)},1000)}
+const fmt=s=>Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
+
+function renderTargets(){
+  const el=$("#targets");
+  el.innerHTML=S.targets.length?S.targets.map(t=>`<button class="t" data-id="${t.id}" aria-current="${t.id===S.active}"><b>${esc(t.role)}</b><span>${esc(t.company||"No company")} · ${S.sessions.filter(s=>s.tid===t.id).length} answers</span></button>`).join(""):'<p class="empty">No applications yet. Add the first one below.</p>';
+  el.querySelectorAll(".t").forEach(b=>b.onclick=()=>{S.active=b.dataset.id;save();cur=null;pick();render()});
+}
+function renderPractice(){
+  const t=T(),el=$("#tab-practice");
+  if(!t){el.innerHTML='<div class="card"><h2>Start with the job you want</h2><p class="empty">Add an application on the left. Include skills from the job post and your questions will match it.</p></div>';return}
+  if(!cur)pick();
+  const last=S.sessions.filter(s=>s.tid===t.id&&s.q===cur.q).pop();
+  el.innerHTML=`<div class="stage"><small>${esc(cur.cat)} · ${esc(t.role)}${t.company?" at "+esc(t.company):""}</small><h2>${esc(cur.q)}</h2><div class="row"><span class="timer" id="timer">${fmt(secs)}</span><button class="btn alt" id="skip" style="color:var(--stage-ink);border-color:#ffffff55">Skip question</button></div></div>
+  <div class="card">
+  ${last?`<p class="hint">You answered this before and rated yourself ${last.rating}/5. Your last answer is below, so you can improve it.</p>`:`<p class="hint">Answer out loud first, then write the key points. For stories use Situation, Task, Action, Result.</p>`}
+  <label for="ans">Your answer notes</label><textarea id="ans">${last?esc(last.answer):""}</textarea>
+  <label>How did it go?</label>
+  <div class="stars row" role="group" aria-label="Self rating">${[1,2,3,4,5].map(n=>`<button data-n="${n}" aria-pressed="false" aria-label="${n} out of 5">${n}</button>`).join("")}</div>
+  <div class="row" style="margin-top:14px"><button class="btn" id="saveA">Save and next question</button><span id="msg" class="ok"></span></div>
+  <label for="cq" style="margin-top:20px">Add your own question for this job</label>
+  <div class="row"><input id="cq" style="flex:1" placeholder="e.g. Why are you leaving your current job?"><button class="btn alt" id="addQ">Add question</button></div></div>`;
+  el.querySelectorAll(".stars button").forEach(b=>b.onclick=()=>{rating=+b.dataset.n;el.querySelectorAll(".stars button").forEach(x=>x.setAttribute("aria-pressed",+x.dataset.n===rating))});
+  $("#skip").onclick=()=>{pick();renderPractice()};
+  $("#saveA").onclick=()=>{
+    const a=$("#ans").value.trim();
+    if(!a||!rating){$("#msg").style.color="var(--mute)";$("#msg").textContent="Write a few notes and pick a rating to save.";return}
+    S.sessions.push({tid:t.id,q:cur.q,cat:cur.cat,answer:a,rating,secs,ts:Date.now()});save();
+    pick();render();
+  };
+  $("#addQ").onclick=()=>{const v=$("#cq").value.trim();if(!v)return;(S.custom[t.id]=S.custom[t.id]||[]).push(v);save();cur={q:v,cat:"Your own"};rating=0;startTimer();renderPractice()};
+}
+function renderHistory(){
+  const t=T(),el=$("#tab-history");
+  const list=t?S.sessions.filter(s=>s.tid===t.id).slice().reverse():[];
+  el.innerHTML='<div class="card"><h2>Past answers</h2>'+(list.length?list.map(s=>`<div class="hist"><div class="row" style="justify-content:space-between"><b>${esc(s.q)}</b><span>${s.rating}/5 · ${fmt(s.secs)}</span></div><small style="color:var(--mute)">${esc(s.cat)} · ${new Date(s.ts).toLocaleDateString()}</small><p>${esc(s.answer)}</p><button class="btn alt" data-q="${esc(s.q)}" data-c="${esc(s.cat)}">Practise again</button></div>`).join(""):'<p class="empty">Saved answers appear here so you can come back and improve them.</p>')+'</div>';
+  el.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{cur={q:b.dataset.q,cat:b.dataset.c};rating=0;startTimer();setTab("practice")});
+}
+function renderProgress(){
+  const t=T(),el=$("#tab-progress"),list=t?S.sessions.filter(s=>s.tid===t.id):[];
+  if(!list.length){el.innerHTML='<div class="card"><h2>Progress</h2><p class="empty">Save a few answers to see your average rating by question type.</p></div>';return}
+  const cats={};list.forEach(s=>{(cats[s.cat]=cats[s.cat]||[]).push(s.rating)});
+  const avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
+  const rows=Object.entries(cats).sort((a,b)=>avg(a[1])-avg(b[1]));
+  const first=avg(list.slice(0,3).map(s=>s.rating)),lastA=avg(list.slice(-3).map(s=>s.rating));
+  el.innerHTML=`<div class="card"><h2>Progress for ${esc(t.role)}</h2><p>${list.length} answers saved. Average of your first three: ${first.toFixed(1)}. Average of your latest three: ${lastA.toFixed(1)}.</p><p class="hint">Weakest areas first. The practice tab asks these more often.</p>`+rows.map(([c,a])=>`<div class="row" style="margin:10px 0"><span style="width:140px">${esc(c)}</span><div class="bar"><i style="width:${avg(a)*20}%"></i></div><span>${avg(a).toFixed(1)}</span></div>`).join("")+"</div>";
+}
+function renderSetup(){
+  $("#tab-setup").innerHTML="<h2>Before an online interview</h2>"+CHECK.map((c,i)=>`<label><input type="checkbox" data-i="${i}" ${checks[i]?"checked":""}>${c}</label>`).join("");
+  document.querySelectorAll("#tab-setup input").forEach(x=>x.onchange=()=>{checks[x.dataset.i]=x.checked});
+}
+function setTab(n){
+  tab=n;
+  document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===n));
+  ["practice","history","progress","setup"].forEach(x=>$("#tab-"+x).hidden=x!==n);
+  render();
+}
+function render(){renderTargets();({practice:renderPractice,history:renderHistory,progress:renderProgress,setup:renderSetup})[tab]()}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+$("#addT").onclick=()=>{
+  const role=$("#f-role").value.trim();if(!role){$("#f-role").focus();return}
+  const t={id:"t"+Date.now(),role,company:$("#f-co").value.trim(),type:$("#f-type").value,skills:$("#f-sk").value.split(",").map(x=>x.trim()).filter(Boolean).slice(0,8)};
+  S.targets.push(t);S.active=t.id;save();
+  ["#f-role","#f-co","#f-sk"].forEach(i=>$(i).value="");$("#newform").open=false;
+  cur=null;setTab("practice");
+};
+if(!S.active&&S.targets.length)S.active=S.targets[0].id;
+render();
+</script>
+</body>
+</html>
